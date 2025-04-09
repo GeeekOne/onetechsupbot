@@ -38,7 +38,7 @@ async def cmd_start_dialog(message: types.Message, state: FSMContext):
 
     await state.set_state(Communication.waiting_for_message)
     await message.answer(
-        "📝 Напишите ваше сообщение.\n"
+        "📝 Напишите ваше сообщение.\n\n"
         "Вы можете продолжать диалог, пока не нажмёте \"🔴 Завершить диалог\".",
         reply_markup=end_dialog
     )
@@ -48,11 +48,6 @@ async def cmd_start_dialog(message: types.Message, state: FSMContext):
 async def handle_first_user_message(message: types.Message, state: FSMContext, bot: Bot):
     workflow_data = bot.workflow_data
     dev_chat_id = workflow_data.get('dev_chat_id')
-    # chat_id = message.chat.id
-
-    # Игонирирование сообщений от разработчика
-    # if message.chat.id != dev_chat_id:
-    #     return
 
     user = message.from_user
 
@@ -70,7 +65,6 @@ async def handle_first_user_message(message: types.Message, state: FSMContext, b
         forwarded = await bot.forward_message(dev_chat_id, message.chat.id, message.message_id)
 
         # Сохраняем ID сообщения
-        # active_dialogs[user.id] = forwarded.message_id
         active_dialogs[user.id] = {
             "forwarded_msg_id": forwarded.message_id,
             "user_id": user.id,
@@ -81,7 +75,8 @@ async def handle_first_user_message(message: types.Message, state: FSMContext, b
         await state.set_state(Communication.chatting)
 
         await message.answer(
-            "Ваше сообщение отправлено.\n Можете продолжать диалог или завершить его."
+            "Ваше сообщение отправлено.\n"
+            "Можете продолжать диалог или завершить его."
             )
 
     except Exception as e:
@@ -120,64 +115,3 @@ async def handle_user_followups(message: types.Message, state: FSMContext, bot: 
     except Exception as e:
         print(f"[Ошибка] {e}")
         await message.answer("Произошла ошибка при пересылке.")
-
-# --------------------------------------------------------------
-
-# @user_private.message(Communication.chatting, F.content_type == types.ContentType.TEXT)
-# async def handle_subsequent_user_message(message: types.Message, state: FSMContext, bot: Bot):
-#     workflow_data = bot.workflow_data
-#     dev_chat_id = workflow_data.get('dev_chat_id')
-
-#     user = message.from_user
-
-#     if message.text == "🚫 Завершить диалог":
-#         await end_feedback(message, state, bot)
-#         return
-
-#     original_message = message.reply_to_message
-
-#     user_id = None
-
-#     if original_message:
-#         for uid, dev_msg_id in active_dialogs.items():
-#             if dev_msg_id == original_message.message_id:
-#                 user_id = uid
-#                 break
-
-#     if not user_id:
-#         user_id = user.id if user.id in active_dialogs else None
-
-#     if not user_id:
-#         await message.reply("❌ Не удалось найти пользователя или контекст диалога.")
-#         return
-
-#     try:
-#         # Просто пересылаем сообщение
-#         forwarded_message = await bot.forward_message(
-#             chat_id=dev_chat_id,
-#             from_chat_id=message.chat.id,
-#             message_id=message.message_id
-#         )
-#         # Обновляем ID последнего сообщения в словаре для корректных ответов админа
-#         active_dialogs[user.id] = forwarded_message.message_id
-
-#     except Exception as e:
-#         print(f"Ошибка при пересылке сообщения от {user.id} разработчику: {e}")
-#         await message.answer("Произошла ошибка при отправке вашего сообщения.")
-
-
-
-# @user_private.message(F.text.lower() == "завершить диалог", Communication.chatting)
-# async def end_feedback(message: types.Message, state: FSMContext, bot: Bot):
-#     workflow_data = bot.workflow_data
-#     dev_chat_id = workflow_data.get('dev_chat_id')
-
-#     user_id = message.from_user.id
-#     user_info = f"{message.from_user.full_name} \
-#         (@{message.from_user.username or 'нет username'}, ID: {user_id})"
-
-#     active_dialogs.pop(user_id, None)  # Удаляем пользователя из словаря активных диалогов
-#     await state.clear() # Очищаем состояние пользователя
-#     await message.answer("✅ Диалог завершён.", reply_markup=start_dialog) # Возвращаем стартовую клавиатуру
-
-#     await bot.send_message(dev_chat_id, f"✅ Пользователь {user_info} завершил диалог.")
