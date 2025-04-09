@@ -13,7 +13,7 @@ group_router = Router()
 group_router.message.filter(ChatTypeFilter(['group', 'supergroup'])) # Слушаем только группы/супергруппы
 
 
-async def schedule_dialog_timeout(user_id: int, bot: Bot, state: FSMContext, delay: int = 60):
+async def schedule_dialog_timeout(user_id: int, bot: Bot, state: FSMContext, delay: int = 600):
     print(f"[debug] ⏱️ Запущен таймер очистки для {user_id}")
 
     await asyncio.sleep(delay)
@@ -32,7 +32,7 @@ async def schedule_dialog_timeout(user_id: int, bot: Bot, state: FSMContext, del
         try:
             await bot.send_message(
                 chat_id=user_id,
-                text="⌛ Диалог завершён из-за бездействия.\n"
+                text="⌛ Диалог был завершён автоматически.\n"
                      "Если у вас остались вопросы — нажмите кнопку ниже, чтобы начать заново.",
                      reply_markup=start_dialog
             )
@@ -62,7 +62,7 @@ async def reply_to_user_from_dev(message: types.Message, bot: Bot):
     try:
         await bot.send_message(
             chat_id=user_id,
-            text=f"Ответ от разработчика:\n\n{message.text}",
+            text=f"{message.text}",
             parse_mode="Markdown"
         )
 
