@@ -11,11 +11,6 @@ from handlers.user_private import user_private
 from handlers.group import group_router
 
 
-# async def on_startup()
-
-# async def on_shutdown(bot: Bot):
-#     await bot.session.close()
-
 async def main():
     bl.basic_colorized_config(level=logging.INFO)
 
