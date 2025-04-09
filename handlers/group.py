@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from aiogram import Bot, Dispatcher, Router, types, F
 from aiogram.fsm.context import FSMContext
@@ -14,7 +15,7 @@ group_router.message.filter(ChatTypeFilter(['group', 'supergroup'])) # Слуш�
 
 
 async def schedule_dialog_timeout(user_id: int, bot: Bot, state: FSMContext, delay: int = 600):
-    print(f"[debug] ⏱️ Запущен таймер очистки для {user_id}")
+    logging.info(f"[debug] ⏱️ Запущен таймер очистки для {user_id}")
 
     await asyncio.sleep(delay)
 
@@ -25,7 +26,7 @@ async def schedule_dialog_timeout(user_id: int, bot: Bot, state: FSMContext, del
     last_update = dialog.get("last_update")
 
     if last_update is None or datetime.utcnow() - last_update >= timedelta(seconds=delay):
-        print(f"[timeout] ⏳ Диалог с user_id={user_id} завершён по таймауту")
+        logging.info(f"[timeout] ⏳ Диалог с user_id={user_id} завершён по таймауту")
         await state.clear()
         active_dialogs.pop(user_id, None)
 
@@ -38,9 +39,9 @@ async def schedule_dialog_timeout(user_id: int, bot: Bot, state: FSMContext, del
             )
 
         except Exception as e:
-            print(f"[timeout] ⚠️ Ошибка при уведомлении пользователя {user_id}: {e}")
+            logging.info(f"[timeout] ⚠️ Ошибка при уведомлении пользователя {user_id}: {e}")
     else:
-        print(f"[timeout] ✅ Диалог с user_id={user_id} всё ещё активен, сброс не требуется.")
+        logging.info(f"[timeout] ✅ Диалог с user_id={user_id} всё ещё активен, сброс не требуется.")
 
 @group_router.message(F.reply_to_message)
 async def reply_to_user_from_dev(message: types.Message, bot: Bot):
@@ -87,7 +88,6 @@ async def reply_to_user_from_dev(message: types.Message, bot: Bot):
             new_task = asyncio.create_task(schedule_dialog_timeout(user_id=user_id, state=state, bot=bot))
             dialog["timeout_task"] = new_task
 
-        # await message.react([types.ReactionTypeEmoji(emoji="👨‍💻")])
     except Exception as e:
-        print(f"Ошибка отправки пользователю {user_id} {e}")
+        logging.info(f"Ошибка отправки пользователю {user_id} {e}")
         await message.reply(f"Не удалось отправить ответ: {e}")

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from aiogram import Bot, Router, types, F
 from aiogram.filters import CommandStart, Command
@@ -80,7 +81,7 @@ async def handle_first_user_message(message: types.Message, state: FSMContext, b
             )
 
     except Exception as e:
-        print(f"Ошибка при отправке первого сообщения от {user.id} разработчику: {e}")
+        logging.info(f"Ошибка при отправке первого сообщения от {user.id} разработчику: {e}")
         await message.answer("К сожалению, произошла ошибка при отправке вашего сообщения. Попробуйте позже.")
         # Очищаем состояние при ошибке
         await state.clear()
